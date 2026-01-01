@@ -1,0 +1,209 @@
+/* src/features/map/components/MapVisualization.css */
+
+/* Container for the map and its controls/legend */
+.map-visualization-container {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden; /* Ensures content inside stays within bounds */
+    /* The height will be controlled by the prop passed from ChatbotUI */
+}
+
+/* The actual Leaflet map container */
+.leaflet-container {
+    border-radius: 8px;
+    /* The height and width are set inline in the component to guarantee full fill */
+}
+
+/* Menu Toggle Button */
+.menu-toggle-button {
+    position: absolute;
+    top: 15px; /* Aligned with the top of the overlay */
+    right: 15px; /* Positioned to the right */
+    z-index: 1001; /* Higher than overlay to be always clickable */
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 50%; /* Circular button */
+    width: 40px; /* Fixed width */
+    height: 40px; /* Fixed height */
+    font-size: 1.5rem; /* Large icon/text */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.menu-toggle-button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+/* Styles for when the menu is open (default state of the overlay) */
+.map-controls-overlay {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-width: 300px; /* Set a reasonable max-width for the open menu */
+    min-width: 250px; /* Ensure it's not too small */
+    transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+    transform: translateX(0); /* Ensure it's visible when open */
+    opacity: 1;
+}
+
+/* Styles for when the menu is closed */
+.map-controls-overlay.closed {
+    transform: translateX(-100%); /* Slide completely off-screen to the left */
+    opacity: 0; /* Fade out */
+    pointer-events: none; /* Prevent interaction when hidden */
+}
+
+/* Adjust button position when menu is closed */
+.menu-toggle-button.open-button {
+    left: 15px; /* Move button to the left when menu is closed */
+    right: unset; /* Remove right property */
+    background-color: #28a745; /* A different color for the open button */
+}
+
+.menu-toggle-button.open-button:hover {
+    background-color: #218838;
+}
+
+/* Existing styles for content inside the overlay */
+.map-controls-overlay h4 {
+    margin: 0 0 15px 0;
+    font-size: 1.1rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.risk-button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.risk-button-group button {
+    padding: 10px 20px;
+    border: 1px solid #007bff;
+    border-radius: 30px;
+    cursor: pointer;
+    background-color: #e9f5ff;
+    color: #007bff;
+    font-weight: bold;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.risk-button-group button:hover {
+    background-color: #0069d9;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.risk-button-group button.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+
+/* Legend Styling */
+.map-legend {
+    border-top: 1px solid #e0e0e0;
+    padding-top: 18px;
+}
+
+.map-legend h5 {
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    color: #555;
+    font-weight: 600;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.legend-color-box {
+    width: 25px;
+    height: 25px;
+    margin-right: 12px;
+    border: 1px solid #444;
+    border-radius: 5px;
+    flex-shrink: 0;
+}
+
+.legend-item span {
+    font-size: 0.95rem;
+    color: #444;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .map-controls-overlay {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        max-width: unset;
+        padding: 15px;
+        /* When closed, also consider moving it off-screen or reducing height */
+        transform: translateX(0); /* Reset for mobile, manage visibility with display */
+        opacity: 1;
+        width: calc(100% - 20px); /* Fill available width */
+        box-sizing: border-box; /* Include padding in width */
+    }
+
+    .map-controls-overlay.closed {
+        /* On small screens, hide content or make it a smaller bar */
+        transform: translateY(-100%); /* Slide up to hide completely */
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    /* Adjust the toggle button for mobile */
+    .menu-toggle-button {
+        top: 10px;
+        right: 10px;
+        left: unset; /* Ensure it stays on the right */
+        /* You might want to move it inside the collapsed menu on mobile */
+    }
+
+    .menu-toggle-button.open-button {
+        left: 10px; /* Button stays on the left when menu is closed */
+        right: unset;
+    }
+
+    .risk-button-group {
+        justify-content: center;
+    }
+
+    .risk-button-group button {
+        padding: 8px 15px;
+        font-size: 0.85rem;
+    }
+
+    .legend-color-box {
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+    }
+    .legend-item span {
+        font-size: 0.85rem;
+    }
+}

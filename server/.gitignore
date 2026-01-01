@@ -1,0 +1,40 @@
+# Environment
+.env
+.venv/
+venv/
+genai-env/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Node
+node_modules/
+dist/
+
+# Logs
+*.log
+logs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker volumes (if local)
+postgres_data/
+neo4j_data/
+ollama_data/
+
+# Private documents (FYP)
+*.pdf
+
+# test file
+api-test.http
+api-test2.http

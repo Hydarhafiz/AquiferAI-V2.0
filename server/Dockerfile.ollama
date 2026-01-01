@@ -1,0 +1,19 @@
+# Use the official Ollama image as the base
+FROM ollama/ollama:latest
+
+# Install curl into the container using apt-get (common for Debian/Ubuntu-based images)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy the startup script into the container
+COPY ollama-startup.sh /usr/local/bin/ollama-startup.sh
+
+# Make the script executable
+RUN chmod +x /usr/local/bin/ollama-startup.sh
+
+# Set the entrypoint to run our custom startup script
+ENTRYPOINT ["/usr/local/bin/ollama-startup.sh"]
+
+# The CMD will be passed as arguments to our ENTRYPOINT script (ollama-startup.sh)
+CMD ["ollama", "serve"]
