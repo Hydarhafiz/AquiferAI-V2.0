@@ -34,136 +34,107 @@ CYPHER_SPECIALIST_PROMPT = """You are the Cypher Specialist Agent for a Neo4j-ba
 
 ## Database Schema
 
-```
-(:Aquifer {
-    name: STRING,
-    depth_m: FLOAT,
-    porosity: FLOAT,
-    permeability_md: FLOAT,
-    temperature_c: FLOAT,
-    pressure_mpa: FLOAT,
-    salinity_ppm: INTEGER,
-    co2_storage_capacity_mt: FLOAT,
-    latitude: FLOAT,
-    longitude: FLOAT,
-    cluster_id: INTEGER
-})
+**Nodes:**
+* `:Aquifer` properties: `OBJECTID` (STRING), `AquiferHydrogeologicClassification`, `Basin`, `Boundary_coordinates`, `Cluster`, `Continent`, `Country`, `Depth`, `Lake_area`, `Location` (Point WKT), `Parameter_area`, `Parameter_shape`, `Permeability`, `Porosity`, `Recharge`, `Thickness`
+* `:Basin` properties: `name`
+* `:Country` properties: `name`
+* `:Continent` properties: `name`
 
-(:Basin {
-    name: STRING,
-    area_km2: FLOAT
-})
+**Relationships:**
+* `(:Aquifer)-[:LOCATED_IN_BASIN]->(:Basin)`
+* `(:Aquifer)-[:PART_OF]->(:Cluster)`
+* `(:Basin)-[:IS_LOCATED_IN_COUNTRY]->(:Country)`
+* `(:Country)-[:LOCATED_IN_CONTINENT]->(:Continent)`
 
-(:Country {
-    name: STRING,
-    region: STRING
-})
+## Query Generation Rules
 
-(:RiskAssessment {
-    risk_level: STRING,      # LOW, MEDIUM, HIGH
-    seismic_risk: STRING,    # LOW, MEDIUM, HIGH
-    regulatory_score: FLOAT  # 0.0 to 1.0
-})
+1.  **Always return Cypher queries in a code block.**
+2.  **Prioritize Geographic Filtering:** If a user mentions a basin, country, or continent name, **always use the appropriate full-text search first** to find relevant aquifers.
+3.  **Access properties directly:** `a.PropertyName`.
+4.  **For `OBJECTID` queries:** Use `MATCH (a:Aquifer {OBJECTID: "objectid"})`. Only use this if a specific `OBJECTID` is provided. NOTE: OBJECTID is in string format.
+5.  **Always return all core aquifer properties essential for CO2 storage analysis**, including `a.Porosity`, `a.Permeability`, `a.Thickness`, `a.Depth`, `a.Recharge`, `a.Lake_area`, `a.Parameter_area`, `a.AquiferHydrogeologicClassification`, `a.Boundary_coordinates`, `a.Cluster`, `a.Location`, `a.Parameter_shape`, and `a.OBJECTID`, regardless of whether the user explicitly mentions them.
+6.  **Always use explicit `RETURN` clauses** with specific property names. Include `a.OBJECTID` in all `RETURN` clauses.
+7.  **Do not perform calculations or transformations in RETURN clause**. Only return existing properties.
+8.  **Use `OPTIONAL MATCH`** for relationships to avoid missing results.
+9.  **Avoid:**
+    * Map projections (`a { .* }`)
+    * `CREATE`, `SET`, `DELETE` operations
+10.  **Geographic Search (Basin, Country, Continent):**
+    * Use **full-text search** for any geographic name (basin, country, continent).
+    * Always chain searches for multiple geographic terms.
+    * **Always include `YIELD node AS X, score` followed by `WHERE score > 0.5` to ensure relevance.**
+    * **Distinguish between single-entity focus and comparison:**
+        * **For queries focusing on a *single* specific entity** (e.g., "the X basin"): After `WHERE score > 0.5`, **always add `ORDER BY score DESC LIMIT 1`**.
+        * **For *comparison* queries** (e.g., "Compare X and Y"): **DO NOT use `LIMIT 1`** after `WHERE score > 0.5`.
+    * When using full-text search for `basin`, always use the directly yielded `basin` node: `MATCH (a:Aquifer)-[:LOCATED_IN_BASIN]->(basin)`.
+11.  **Range Queries:** Express numerical ranges using comparison operators (`>=`, `<=`, `>`, `<`) combined with `AND`.
+12. **Variable Scope with `WITH` clauses:**
+    * Explicitly carry forward all **node variables** needed in subsequent clauses.
+    * If carrying forward **properties**, alias them using `AS`.
+13.  **Do not add `LIMIT` unless the user explicitly requests a specific number** (e.g., "top 5", "how many").
 
-Relationships:
-(Aquifer)-[:LOCATED_IN]->(Basin)
-(Basin)-[:WITHIN]->(Country)
-(Aquifer)-[:HAS_RISK]->(RiskAssessment)
-```
+## Common Query Patterns
 
-## Query Writing Rules
-
-### MUST Follow:
-1. **Always use RETURN clause** - Every query must have RETURN
-2. **Use LIMIT for safety** - Default LIMIT 20 for unbounded queries
-3. **Property names are case-sensitive** - Use exact casing from schema
-4. **Use OPTIONAL MATCH** for potentially missing relationships
-5. **Parameterize user input** - Use $parameters for dynamic values
-6. **Explicit relationships** - Use full relationship syntax: -[:RELATIONSHIP]->
-
-### Best Practices:
-- **Performance**: Add indexes to WHERE clauses where possible
-- **Readability**: Use clear aliases (a for Aquifer, b for Basin, etc.)
-- **Safety**: Avoid unbounded traversals (MATCH (n)-[*]->())
-- **Completeness**: Include all relevant properties in RETURN
-
-### Common Patterns:
-
-**Single aquifer lookup:**
+**Aquifers in a specific basin (single-entity focus):**
 ```cypher
-MATCH (a:Aquifer {name: $aquifer_name})
-OPTIONAL MATCH (a)-[:LOCATED_IN]->(b:Basin)
-OPTIONAL MATCH (a)-[:HAS_RISK]->(r:RiskAssessment)
-RETURN a, b, r
+CALL db.index.fulltext.queryNodes("basinSearch", $basin_name)
+YIELD node AS basin, score
+WHERE score > 0.5
+ORDER BY score DESC
+LIMIT 1
+MATCH (a:Aquifer)-[:LOCATED_IN_BASIN]->(basin)
+RETURN a.OBJECTID, a.Porosity, a.Permeability, a.Thickness, a.Depth, a.Recharge, basin.name AS basin_name
 ```
 
-**Aquifers in a basin:**
+**Aquifer by OBJECTID:**
 ```cypher
-MATCH (a:Aquifer)-[:LOCATED_IN]->(b:Basin {name: $basin_name})
-OPTIONAL MATCH (a)-[:HAS_RISK]->(r:RiskAssessment)
-RETURN a, b, r
-LIMIT 20
+MATCH (a:Aquifer {OBJECTID: $objectid})
+RETURN a.OBJECTID, a.Porosity, a.Permeability, a.Thickness, a.Depth, a.Recharge
 ```
 
-**Top N by capacity:**
+**Aquifers in a country:**
 ```cypher
-MATCH (a:Aquifer)
-OPTIONAL MATCH (a)-[:LOCATED_IN]->(b:Basin)
-OPTIONAL MATCH (a)-[:HAS_RISK]->(r:RiskAssessment)
-RETURN a, b, r
-ORDER BY a.co2_storage_capacity_mt DESC
-LIMIT $limit
+CALL db.index.fulltext.queryNodes("countrySearch", $country_name)
+YIELD node AS country, score
+WHERE score > 0.5
+ORDER BY score DESC
+LIMIT 1
+MATCH (a:Aquifer)-[:LOCATED_IN_BASIN]->(b)-[:IS_LOCATED_IN_COUNTRY]->(country)
+RETURN a.OBJECTID, a.Porosity, a.Permeability, a.Thickness, country.name AS country_name
 ```
 
-**Filter by risk level:**
+**Compare basins (no LIMIT 1):**
 ```cypher
-MATCH (a:Aquifer)-[:HAS_RISK]->(r:RiskAssessment {risk_level: $risk_level})
-OPTIONAL MATCH (a)-[:LOCATED_IN]->(b:Basin)
-RETURN a, b, r
-LIMIT 20
-```
-
-**Aggregation (count by country):**
-```cypher
-MATCH (a:Aquifer)-[:LOCATED_IN]->(b:Basin)-[:WITHIN]->(c:Country)
-RETURN c.name as country, count(a) as aquifer_count
-ORDER BY aquifer_count DESC
-```
-
-**Complex filtering (capacity + risk + depth):**
-```cypher
-MATCH (a:Aquifer)-[:HAS_RISK]->(r:RiskAssessment)
-WHERE a.co2_storage_capacity_mt >= $min_capacity
-  AND r.risk_level = $risk_level
-  AND a.depth_m BETWEEN $min_depth AND $max_depth
-OPTIONAL MATCH (a)-[:LOCATED_IN]->(b:Basin)
-RETURN a, b, r
-ORDER BY a.co2_storage_capacity_mt DESC
-LIMIT 10
+WITH ['Amazon', 'Parnaiba'] AS basinNames
+UNWIND basinNames AS basinName
+CALL db.index.fulltext.queryNodes("basinSearch", basinName)
+YIELD node AS matchedBasin, score
+WHERE score > 0.5
+MATCH (a:Aquifer)-[:LOCATED_IN_BASIN]->(matchedBasin)
+RETURN a.OBJECTID, a.Porosity, a.Permeability, a.Thickness, a.Depth, matchedBasin.name AS basin_name
+ORDER BY basin_name
 ```
 
 ## Output Format
 
-For each sub-task, respond with JSON:
+Respond with JSON:
 ```json
 {
-    "subtask_id": <ID from the plan>,
+    "subtask_id": <ID>,
     "cypher": "<valid Cypher query>",
-    "explanation": "Plain English: what this query does and why",
-    "parameters": {
-        "param_name": "description of expected value"
-    },
-    "expected_columns": ["column1", "column2", ...]
+    "explanation": "What this query does",
+    "parameters": {},
+    "expected_columns": ["column1", "column2"]
 }
 ```
 
 ## Important Notes
 
-- **NO placeholders**: If a specific value is mentioned (e.g., "Solimões"), hardcode it in the query
-- **Use parameters**: Only use parameters for generic filters (e.g., $limit, $min_capacity)
-- **Be defensive**: Use OPTIONAL MATCH when relationships might not exist
+- **NO placeholders**: Hardcode specific values mentioned in queries
+- **Use parameters** only for generic filters
+- **Use OPTIONAL MATCH** when relationships might not exist
 - **Think performance**: Avoid queries that could return thousands of results
-- **Return metadata**: Include related entities (Basin, RiskAssessment) for context
+- **Return all core properties**: Always include OBJECTID, Porosity, Permeability, Thickness, Depth, Recharge
 
 Now generate a Cypher query for the given sub-task.
 """
@@ -231,13 +202,13 @@ Generate the Cypher query following all the rules and best practices.
             except Exception as e:
                 logger.error(f"[CYPHER] Error generating query for subtask {subtask.id}: {e}")
 
-                # Create fallback query
+                # Create fallback query with correct schema
                 fallback_query = CypherQuery(
                     subtask_id=subtask.id,
-                    cypher="MATCH (a:Aquifer) RETURN a LIMIT 10",
+                    cypher="MATCH (a:Aquifer) RETURN a.OBJECTID, a.Porosity, a.Permeability, a.Depth LIMIT 10",
                     explanation=f"Fallback query due to error: {str(e)[:100]}",
                     parameters={},
-                    expected_columns=["a"]
+                    expected_columns=["a.OBJECTID", "a.Porosity", "a.Permeability", "a.Depth"]
                 )
                 generated_queries.append(fallback_query)
                 state["error_count"] = state.get("error_count", 0) + 1
@@ -270,14 +241,14 @@ Generate the Cypher query following all the rules and best practices.
         duration_ms = (datetime.utcnow() - start_time).total_seconds() * 1000
         logger.error(f"[CYPHER] Critical error: {e}", exc_info=True)
 
-        # Create minimal fallback
+        # Create minimal fallback with correct schema
         state["generated_queries"] = [
             CypherQuery(
                 subtask_id=1,
-                cypher="MATCH (a:Aquifer) RETURN a.name, a.co2_storage_capacity_mt LIMIT 10",
+                cypher="MATCH (a:Aquifer) RETURN a.OBJECTID, a.Porosity, a.Permeability, a.Depth LIMIT 10",
                 explanation="Emergency fallback query",
                 parameters={},
-                expected_columns=["a.name", "a.co2_storage_capacity_mt"]
+                expected_columns=["a.OBJECTID", "a.Porosity", "a.Permeability", "a.Depth"]
             )
         ]
         state["error_count"] = state.get("error_count", 0) + 1

@@ -4,12 +4,21 @@ import os
 import json
 from neo4j.spatial import Point
 from neo4j.graph import Node  # Import Node from the neo4j.graph module
+from pathlib import Path
+
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    env_path = Path(__file__).parent.parent.parent / ".env"
+    load_dotenv(env_path)
+except ImportError:
+    pass  # python-dotenv not installed, environment variables must be set manually
 
 class Neo4jDriver:
     def __init__(self):
-        self.uri = os.getenv("NEO4J_URI", "neo4j://172.28.96.1:7687")
+        self.uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
         self.user = os.getenv("NEO4J_USER", "neo4j")
-        self.password = os.getenv("NEO4J_PASSWORD", "Hydarhakim@12")
+        self.password = os.getenv("NEO4J_PASSWORD", "password")
         self.driver = GraphDatabase.driver(self.uri, auth=(self.user, self.password))
         print(f"Connected to Neo4j at {self.uri}")
 
@@ -36,8 +45,15 @@ class Neo4jDriver:
             
             return records
 
-# Singleton instance
-neo4j_driver = Neo4jDriver()
+# Singleton instance (initialized on first use, not on import)
+_neo4j_driver_instance = None
+
+def get_neo4j_driver():
+    """Get or create the Neo4j driver instance."""
+    global _neo4j_driver_instance
+    if _neo4j_driver_instance is None:
+        _neo4j_driver_instance = Neo4jDriver()
+    return _neo4j_driver_instance
 
 def execute_cypher_query(query: str, parameters=None):
     try:
@@ -49,6 +65,7 @@ def execute_cypher_query(query: str, parameters=None):
                     clean_params[key] = value
         
         # Use the instance of Neo4jDriver to execute the query
+        neo4j_driver = get_neo4j_driver()
         records = neo4j_driver.execute_query(query, clean_params)
         
         # Process spatial data
