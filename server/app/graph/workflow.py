@@ -14,151 +14,21 @@ from langgraph.checkpoint.memory import MemorySaver
 
 from app.graph.state import AgentState, add_trace_step
 
+# Import real agent implementations (Task 1.3 complete)
+from app.agents.planner import plan_node
+from app.agents.cypher_specialist import generate_cypher_node
+from app.agents.validator import validate_node
+from app.agents.analyst import analyze_node
+
 logger = logging.getLogger(__name__)
 
 
 # ============================================
-# Node Functions (Stubs - Implemented in Task 1.3)
+# Helper Node Functions
 # ============================================
 
-async def plan_node(state: AgentState) -> AgentState:
-    """
-    Planner Agent Node
-
-    Analyzes the user query and creates an execution plan.
-    Classifies complexity and decomposes into sub-tasks.
-
-    TODO: Full implementation in Task 1.3a
-    """
-    logger.info(f"[PLAN] Processing query: {state['user_query']}")
-
-    # Stub implementation - will be replaced in Task 1.3a
-    from app.graph.state import QueryPlan, SubTask, QueryComplexity
-
-    # Create a simple stub plan
-    plan = QueryPlan(
-        complexity=QueryComplexity.SIMPLE,
-        subtasks=[
-            SubTask(
-                id=1,
-                description="Placeholder subtask",
-                dependencies=[],
-                expected_output="data"
-            )
-        ],
-        reasoning="Stub reasoning",
-        estimated_execution_time=5.0
-    )
-
-    state["query_plan"] = plan
-    logger.info(f"[PLAN] Created plan with {len(plan.subtasks)} subtasks")
-
-    return state
-
-
-async def generate_cypher_node(state: AgentState) -> AgentState:
-    """
-    Cypher Specialist Agent Node
-
-    Generates Cypher queries for each sub-task in the plan.
-
-    TODO: Full implementation in Task 1.3b
-    """
-    logger.info("[CYPHER] Generating Cypher queries")
-
-    # Stub implementation - will be replaced in Task 1.3b
-    from app.graph.state import CypherQuery
-
-    queries = [
-        CypherQuery(
-            subtask_id=1,
-            cypher="MATCH (a:Aquifer) RETURN a LIMIT 5",
-            explanation="Stub query",
-            parameters={},
-            expected_columns=["a"]
-        )
-    ]
-
-    state["generated_queries"] = queries
-    logger.info(f"[CYPHER] Generated {len(queries)} queries")
-
-    return state
-
-
-async def validate_node(state: AgentState) -> AgentState:
-    """
-    Validator Agent Node
-
-    Validates and executes Cypher queries with self-healing capability.
-
-    TODO: Full implementation in Task 1.3c
-    """
-    logger.info("[VALIDATE] Validating and executing queries")
-
-    # Stub implementation - will be replaced in Task 1.3c
-    from app.graph.state import ValidationResult, ValidationStatus
-
-    results = [
-        ValidationResult(
-            subtask_id=1,
-            status=ValidationStatus.VALID,
-            original_query="MATCH (a:Aquifer) RETURN a LIMIT 5",
-            healed_query=None,
-            results=[{"a": "stub_data"}],
-            error_message=None,
-            retry_count=0,
-            execution_time_ms=100.0,
-            healing_explanation=None
-        )
-    ]
-
-    state["validation_results"] = results
-    state["all_queries_valid"] = all(r.status == ValidationStatus.VALID for r in results)
-    state["total_retries"] = sum(r.retry_count for r in results)
-
-    logger.info(f"[VALIDATE] Validated {len(results)} queries")
-
-    return state
-
-
-async def analyze_node(state: AgentState) -> AgentState:
-    """
-    Analyst Agent Node
-
-    Synthesizes results into insights and recommendations.
-
-    TODO: Full implementation in Task 1.3d
-    """
-    logger.info("[ANALYZE] Synthesizing results")
-
-    # Stub implementation - will be replaced in Task 1.3d
-    from app.graph.state import AnalysisReport, Insight, Recommendation
-
-    report = AnalysisReport(
-        summary="Stub analysis summary",
-        insights=[
-            Insight(
-                title="Stub Insight",
-                description="This is a placeholder insight",
-                importance="medium"
-            )
-        ],
-        recommendations=[
-            Recommendation(
-                action="Review the results",
-                rationale="Stub rationale",
-                priority="medium"
-            )
-        ],
-        data_quality_notes=None,
-        follow_up_questions=["What else would you like to know?"],
-        visualization_hints=[]
-    )
-
-    state["analysis_report"] = report
-    logger.info("[ANALYZE] Analysis complete")
-
-    return state
+# Note: Agent node functions (plan_node, generate_cypher_node, validate_node, analyze_node)
+# are now imported from app.agents package (implemented in Task 1.3)
 
 
 async def format_response_node(state: AgentState) -> AgentState:
