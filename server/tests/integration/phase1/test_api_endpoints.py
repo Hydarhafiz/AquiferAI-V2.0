@@ -348,9 +348,9 @@ async def test_expert_mode_message():
 
 async def main():
     """Run all API endpoint tests."""
-    # Set up logging to file
+    # Set up logging to file (phase1 logs)
     from tests.conftest import setup_test_logging, teardown_test_logging
-    log_file = setup_test_logging("test_api_endpoints")
+    log_file = setup_test_logging("test_api_endpoints", phase="phase1")
 
     print("\n" + "="*60)
     print("API ENDPOINT TEST SUITE - V2 CHAT")

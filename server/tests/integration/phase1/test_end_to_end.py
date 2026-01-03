@@ -1,19 +1,22 @@
 """
-Integration tests for end-to-end workflow execution.
+Phase 1 Integration Tests: End-to-End Workflow Execution
 
 Tests the complete flow from FastAPI endpoint → LangGraph workflow → Response.
 
 Usage:
     # From server/ directory
-    python -m pytest tests/integration/test_end_to_end.py -v -s
+    python -m pytest tests/integration/phase1/test_end_to_end.py -v -s
 
     # Or run directly
-    python tests/integration/test_end_to_end.py
+    python tests/integration/phase1/test_end_to_end.py
 
 Prerequisites:
     - Docker services running: docker-compose up -d
     - Neo4j seeded with data: python tests/scripts/seed_neo4j.py
     - Ollama models pulled: ./tests/setup_ollama.sh
+
+Logs:
+    - Output saved to: tests/logs/phase1/test_end_to_end_YYYYMMDD_HHMMSS.log
 """
 
 import asyncio
@@ -22,8 +25,8 @@ import os
 from pathlib import Path
 import time
 
-# Add server directory to path
-server_dir = Path(__file__).parent.parent.parent
+# Add server directory to path (now 3 levels up: phase1 -> integration -> tests -> server)
+server_dir = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(server_dir))
 
 # Load environment variables from .env file BEFORE importing app modules
@@ -547,9 +550,9 @@ async def test_performance_benchmark():
 
 async def main():
     """Run all integration tests."""
-    # Set up logging to file
+    # Set up logging to file (phase1 logs)
     from tests.conftest import setup_test_logging, teardown_test_logging
-    log_file = setup_test_logging("test_end_to_end")
+    log_file = setup_test_logging("test_end_to_end", phase="phase1")
 
     print("\n" + "="*60)
     print("INTEGRATION TEST SUITE - END-TO-END WORKFLOW")

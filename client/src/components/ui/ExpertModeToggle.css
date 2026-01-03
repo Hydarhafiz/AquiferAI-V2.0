@@ -1,0 +1,89 @@
+/* src/components/ui/ExpertModeToggle.css */
+
+.expert-mode-toggle-container {
+  display: flex;
+  align-items: center;
+}
+
+.expert-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.expert-mode-toggle:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.expert-mode-toggle:focus {
+  outline: 2px solid rgba(99, 102, 241, 0.5);
+  outline-offset: 2px;
+}
+
+.expert-mode-toggle.active {
+  background-color: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent-color);
+}
+
+.expert-mode-toggle.active:hover {
+  background-color: var(--accent-bg);
+  border-color: var(--accent-color);
+}
+
+.expert-mode-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.expert-mode-label {
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.expert-mode-badge {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  font-size: 1.5rem;
+  line-height: 0;
+  color: var(--success-color);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .expert-mode-toggle {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .expert-mode-label {
+    display: none;
+  }
+
+  .expert-mode-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}

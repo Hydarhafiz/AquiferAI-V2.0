@@ -6,6 +6,7 @@ import StatsVisualization from '../../components/StatsVisualization';
 import MapVisualization from '../map/MapVisualization';
 import RankingTable from '../../components/RankingTable';
 import { useChatSession } from './hooks/useChatSession'; // Import the custom hook
+import { ExpertModeToggle, ExpertModeSettings, ThemeToggle } from '../../components/ui';
 
 const ChatbotUI: React.FC = () => {
     const {
@@ -102,7 +103,11 @@ const ChatbotUI: React.FC = () => {
                     <button className="history-toggle-button" onClick={toggleHistoryMenu}>☰</button>
                     <h1>CO₂ Storage Chatbot</h1>
                     {currentSessionId && <span className="current-session-display">Session: {currentSessionId.substring(0, 8)}...</span>}
-                    <div style={{ width: '40px' }}></div> {/* Spacer for alignment */}
+                    <div className="header-controls">
+                        <ThemeToggle />
+                        <ExpertModeToggle />
+                        <ExpertModeSettings />
+                    </div>
                 </div>
 
                 <div className="chat-history-main" ref={chatHistoryRef}>

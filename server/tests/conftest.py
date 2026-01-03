@@ -40,23 +40,27 @@ class TeeOutput:
         self.file.close()
 
 
-def setup_test_logging(test_name: str) -> Path:
+def setup_test_logging(test_name: str, phase: str = None) -> Path:
     """
     Set up logging for a test run.
 
-    Creates a log file in tests/logs/ with timestamp and test name.
+    Creates a log file in tests/logs/<phase>/ with timestamp and test name.
     Redirects stdout/stderr to both console and file.
 
     Args:
         test_name: Name of the test (used in log filename)
+        phase: Phase name (e.g., "phase1", "phase2"). If None, logs to root logs dir.
 
     Returns:
         Path to the log file
     """
-    # Create logs directory
+    # Create logs directory (with optional phase subdirectory)
     tests_dir = Path(__file__).parent
-    logs_dir = tests_dir / "logs"
-    logs_dir.mkdir(exist_ok=True)
+    if phase:
+        logs_dir = tests_dir / "logs" / phase
+    else:
+        logs_dir = tests_dir / "logs"
+    logs_dir.mkdir(parents=True, exist_ok=True)
 
     # Create timestamped log file
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

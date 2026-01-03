@@ -20,8 +20,8 @@
     top: 15px; /* Aligned with the top of the overlay */
     right: 15px; /* Positioned to the right */
     z-index: 1001; /* Higher than overlay to be always clickable */
-    background-color: #007bff;
-    color: white;
+    background-color: var(--primary-color);
+    color: var(--text-inverse);
     border: none;
     border-radius: 50%; /* Circular button */
     width: 40px; /* Fixed width */
@@ -31,12 +31,12 @@
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    box-shadow: var(--shadow-md);
     transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .menu-toggle-button:hover {
-    background-color: #0056b3;
+    background-color: var(--primary-hover);
     transform: scale(1.05);
 }
 
@@ -46,10 +46,10 @@
     top: 15px;
     left: 15px;
     z-index: 1000;
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--overlay-bg);
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    box-shadow: var(--shadow-lg);
     display: flex;
     flex-direction: column;
     gap: 18px;
@@ -71,18 +71,18 @@
 .menu-toggle-button.open-button {
     left: 15px; /* Move button to the left when menu is closed */
     right: unset; /* Remove right property */
-    background-color: #28a745; /* A different color for the open button */
+    background-color: var(--success-color);
 }
 
 .menu-toggle-button.open-button:hover {
-    background-color: #218838;
+    background-color: var(--success-hover);
 }
 
 /* Existing styles for content inside the overlay */
 .map-controls-overlay h4 {
     margin: 0 0 15px 0;
     font-size: 1.1rem;
-    color: #333;
+    color: var(--text-primary);
     font-weight: 600;
 }
 
@@ -95,42 +95,42 @@
 
 .risk-button-group button {
     padding: 10px 20px;
-    border: 1px solid #007bff;
+    border: 1px solid var(--primary-color);
     border-radius: 30px;
     cursor: pointer;
-    background-color: #e9f5ff;
-    color: #007bff;
+    background-color: var(--primary-bg);
+    color: var(--primary-color);
     font-weight: bold;
     font-size: 0.95rem;
     transition: all 0.3s ease;
     flex-shrink: 0;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-shadow: var(--shadow-sm);
 }
 
 .risk-button-group button:hover {
-    background-color: #0069d9;
-    color: white;
+    background-color: var(--primary-hover);
+    color: var(--text-inverse);
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-md);
 }
 
 .risk-button-group button.active {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    background-color: var(--primary-color);
+    color: var(--text-inverse);
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-sm);
 }
 
 /* Legend Styling */
 .map-legend {
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid var(--border-color);
     padding-top: 18px;
 }
 
 .map-legend h5 {
     margin: 0 0 12px 0;
     font-size: 1rem;
-    color: #555;
+    color: var(--text-secondary);
     font-weight: 600;
 }
 
@@ -144,14 +144,14 @@
     width: 25px;
     height: 25px;
     margin-right: 12px;
-    border: 1px solid #444;
+    border: 1px solid var(--text-tertiary);
     border-radius: 5px;
     flex-shrink: 0;
 }
 
 .legend-item span {
     font-size: 0.95rem;
-    color: #444;
+    color: var(--text-secondary);
 }
 
 /* Responsive adjustments for smaller screens */

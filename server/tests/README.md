@@ -1,134 +1,212 @@
 # AquiferAI V2.0 Test Suite
 
-This directory contains all tests for the AquiferAI V2.0 multi-agent system.
+This directory contains all tests for the AquiferAI V2.0 multi-agent system, organized by implementation phase.
 
 ## Directory Structure
 
 ```
 tests/
 ├── __init__.py
-├── README.md                    # This file
-├── setup_ollama.sh             # Setup script for Ollama models
-├── unit/                       # Unit tests for individual components
+├── README.md                           # This file
+├── conftest.py                         # Shared test configuration & logging
+├── setup_ollama.sh                     # Setup script for Ollama models
+├── scripts/
+│   └── seed_neo4j.py                   # Database seeding script
+├── unit/
 │   ├── __init__.py
-│   └── test_llm_provider.py   # LLM provider abstraction tests
-└── integration/                # Integration tests (coming in later tasks)
-    └── __init__.py
+│   ├── phase1/                         # Phase 1 unit tests
+│   │   ├── __init__.py
+│   │   ├── test_llm_provider.py        # LLM provider abstraction
+│   │   ├── test_workflow.py            # LangGraph workflow
+│   │   ├── test_agents.py              # All 4 agents
+│   │   └── test_neo4j_service.py       # Neo4j service
+│   └── phase2/                         # Phase 2 unit tests
+│       ├── __init__.py
+│       └── (future tests)
+├── integration/
+│   ├── __init__.py
+│   ├── phase1/                         # Phase 1 integration tests
+│   │   ├── __init__.py
+│   │   ├── test_end_to_end.py          # Complete workflow tests
+│   │   └── test_api_endpoints.py       # API endpoint tests
+│   └── phase2/                         # Phase 2 integration tests
+│       ├── __init__.py
+│       └── (future tests)
+└── logs/
+    ├── .gitignore
+    ├── phase1/                         # Phase 1 test logs
+    │   └── *.log
+    └── phase2/                         # Phase 2 test logs
+        └── *.log
 ```
 
 ## Running Tests
 
-### Unit Tests
+### Phase 1 Tests
 
-#### Test LLM Provider (Task 1.1)
+#### Unit Tests
 
 ```bash
 # From server/ directory
-python tests/unit/test_llm_provider.py
+cd server
 
-# Or with pytest
-pytest tests/unit/test_llm_provider.py -v
+# Run all Phase 1 unit tests
+python -m pytest tests/unit/phase1/ -v
+
+# Run specific test file
+python tests/unit/phase1/test_llm_provider.py
+python tests/unit/phase1/test_workflow.py
+python tests/unit/phase1/test_agents.py
+python tests/unit/phase1/test_neo4j_service.py
 ```
 
-**Prerequisites:**
-1. Ollama server running: `ollama serve`
-2. Models installed: `./tests/setup_ollama.sh`
-
-### Setup Ollama Models
+#### Integration Tests
 
 ```bash
-# From server/ directory
+# Run end-to-end workflow tests
+python tests/integration/phase1/test_end_to_end.py
+
+# Run API endpoint tests (requires server running)
+uvicorn main:app --reload &
+python tests/integration/phase1/test_api_endpoints.py
+```
+
+### Phase 2 Tests (Coming Soon)
+
+```bash
+# Run Phase 2 unit tests
+python -m pytest tests/unit/phase2/ -v
+
+# Run Phase 2 integration tests
+python tests/integration/phase2/test_expert_mode.py
+```
+
+## Test Logs
+
+Test logs are automatically saved to phase-specific directories:
+
+- **Phase 1 logs:** `tests/logs/phase1/`
+- **Phase 2 logs:** `tests/logs/phase2/`
+
+Log files follow the naming convention: `{test_name}_{YYYYMMDD_HHMMSS}.log`
+
+## Prerequisites
+
+### 1. Start Docker Services
+
+```bash
+cd server
+docker-compose up -d
+```
+
+### 2. Seed Neo4j Database
+
+```bash
+python tests/scripts/seed_neo4j.py
+```
+
+### 3. Setup Ollama Models
+
+```bash
 ./tests/setup_ollama.sh
 ```
 
-This will pull all required models:
+Required models (~11.4GB total):
 - `llama3.2:3b` (~2GB) - Planner & Validator
 - `qwen2.5-coder:7b` (~4.7GB) - Cypher Specialist
 - `llama3:8b` (~4.7GB) - Analyst
-
-**Total disk space:** ~11.4GB
 
 ## Test Coverage by Phase
 
 ### Phase 1: The Brain Refactor
 
-- [x] **Task 1.1:** LLM Provider
-  - `tests/unit/test_llm_provider.py`
+| Task | Test File | Status |
+|------|-----------|--------|
+| 1.1 LLM Provider | `unit/phase1/test_llm_provider.py` | COMPLETE |
+| 1.2 LangGraph Workflow | `unit/phase1/test_workflow.py` | COMPLETE |
+| 1.3 Agent Implementations | `unit/phase1/test_agents.py` | COMPLETE |
+| 1.4 Neo4j Service | `unit/phase1/test_neo4j_service.py` | COMPLETE |
+| 1.5 Integration | `integration/phase1/test_end_to_end.py` | COMPLETE |
+| 1.5 API Endpoints | `integration/phase1/test_api_endpoints.py` | COMPLETE |
 
-- [ ] **Task 1.2:** LangGraph State & Workflow
-  - `tests/unit/test_state.py` (coming soon)
-  - `tests/unit/test_workflow.py` (coming soon)
+### Phase 2: The Expert Interface
 
-- [ ] **Task 1.3:** Agent Implementations
-  - `tests/unit/test_planner.py` (coming soon)
-  - `tests/unit/test_cypher_specialist.py` (coming soon)
-  - `tests/unit/test_validator.py` (coming soon)
-  - `tests/unit/test_analyst.py` (coming soon)
-
-- [ ] **Task 1.4:** Neo4j Service
-  - `tests/unit/test_neo4j_service.py` (coming soon)
-
-- [ ] **Task 1.5:** Integration
-  - `tests/integration/test_end_to_end.py` (coming soon)
-  - `tests/integration/test_self_healing.py` (coming soon)
+| Task | Test File | Status |
+|------|-----------|--------|
+| 2.1 Expert Mode Toggle | `unit/phase2/test_expert_mode.py` | TODO |
+| 2.2 Cypher Query Panel | `integration/phase2/test_query_panel.py` | TODO |
+| 2.3 Query Editor Modal | `integration/phase2/test_query_editor.py` | TODO |
+| 2.4 Execution Trace | `integration/phase2/test_execution_trace.py` | TODO |
+| 2.5 Chat Integration | `integration/phase2/test_chat_expert_mode.py` | TODO |
 
 ## Environment Variables
 
-Tests use the same `.env` file as the main application. Key variables:
+Tests use the same `.env` file as the main application:
 
 ```bash
-LLM_PROVIDER=ollama              # Use Ollama for local tests
+# LLM Configuration
+LLM_PROVIDER=ollama
 OLLAMA_BASE_URL=http://localhost:11434
 PLANNER_MODEL=llama3.2:3b
 CYPHER_MODEL=qwen2.5-coder:7b
 VALIDATOR_MODEL=llama3.2:3b
 ANALYST_MODEL=llama3:8b
+
+# Database
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=aquifer_password_123
 ```
-
-## Continuous Integration
-
-Future GitHub Actions workflow will run:
-- Unit tests on every PR
-- Integration tests on merge to main
-- Full end-to-end tests before deployment
-
-## Test Data
-
-Test data and fixtures will be added as we build out the system:
-- Mock Neo4j responses
-- Sample aquifer data
-- Golden query test cases
-- Expected Cypher queries
 
 ## Troubleshooting
 
 ### "ModuleNotFoundError: No module named 'app'"
 
-Make sure you're running tests from the `server/` directory:
+Run tests from the `server/` directory:
 ```bash
 cd server
-python tests/unit/test_llm_provider.py
+python tests/unit/phase1/test_llm_provider.py
 ```
 
 ### "Ollama server not responding"
 
-Start the Ollama service:
+Start Ollama:
 ```bash
 ollama serve
 ```
 
-### "Model not found"
+### "Neo4j connection failed"
 
-Pull the required models:
+Start Neo4j container:
 ```bash
-./tests/setup_ollama.sh
+docker-compose up -d neo4j
 ```
 
-## Contributing
+### "No aquifers in database"
 
-When adding new tests:
-1. Place unit tests in `tests/unit/`
-2. Place integration tests in `tests/integration/`
-3. Follow the naming convention: `test_<component>.py`
-4. Update this README with the new test file
-5. Ensure tests can run independently
+Seed the database:
+```bash
+python tests/scripts/seed_neo4j.py
+```
+
+## Adding New Tests
+
+When adding tests for a new phase:
+
+1. Create the phase directory: `tests/{unit,integration}/phaseN/`
+2. Add `__init__.py` to the new directory
+3. Name test files: `test_<component>.py`
+4. Use phase-specific logging:
+   ```python
+   from tests.conftest import setup_test_logging
+   log_file = setup_test_logging("test_name", phase="phaseN")
+   ```
+5. Update this README with new test files
+6. Update the corresponding `PHASEN-TODO.md`
+
+## Continuous Integration
+
+Future GitHub Actions workflow:
+- Unit tests run on every PR
+- Integration tests run on merge to main
+- Full end-to-end tests before deployment
