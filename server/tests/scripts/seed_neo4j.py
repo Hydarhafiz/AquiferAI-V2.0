@@ -19,6 +19,7 @@ Prerequisites:
 import argparse
 import random
 import sys
+import asyncio
 from pathlib import Path
 
 # Add server directory to path
@@ -159,14 +160,14 @@ def generate_aquifer_properties(basin_name: str, index: int) -> dict:
 # Seeding Functions
 # ============================================
 
-def clear_database():
+async def clear_database():
     """Clear all existing data from the database."""
     print("\n🗑️  Clearing existing data...")
-    execute_cypher_query("MATCH (n) DETACH DELETE n")
+    await execute_cypher_query("MATCH (n) DETACH DELETE n")
     print("✓ Database cleared")
 
 
-def create_indexes():
+async def create_indexes():
     """Create indexes for performance and full-text search."""
     print("\n📊 Creating indexes...")
 
@@ -182,7 +183,7 @@ def create_indexes():
 
     for index_query in indexes:
         try:
-            execute_cypher_query(index_query)
+            await execute_cypher_query(index_query)
             print(f"  ✓ {index_query.split('FOR')[1].split('IF')[0].strip()}")
         except Exception as e:
             print(f"  ⚠ {e}")
@@ -196,7 +197,7 @@ def create_indexes():
 
     for ft_query in fulltext_indexes:
         try:
-            execute_cypher_query(ft_query)
+            await execute_cypher_query(ft_query)
             print(f"  ✓ Full-text: {ft_query.split('INDEX')[1].split('IF')[0].strip()}")
         except Exception as e:
             print(f"  ⚠ {e}")
@@ -204,13 +205,13 @@ def create_indexes():
     print("✓ Indexes created")
 
 
-def create_geographic_hierarchy():
+async def create_geographic_hierarchy():
     """Create Continents, Countries, and Basins."""
     print("\n🌍 Creating geographic hierarchy...")
 
     # Create Continents
     for continent in CONTINENTS:
-        execute_cypher_query(
+        await execute_cypher_query(
             "CREATE (c:Continent {name: $name})",
             {"name": continent["name"]}
         )
@@ -218,7 +219,7 @@ def create_geographic_hierarchy():
 
     # Create Countries and link to Continents
     for country in COUNTRIES:
-        execute_cypher_query(
+        await execute_cypher_query(
             """
             MATCH (continent:Continent {name: $continent_name})
             CREATE (c:Country {name: $country_name})
@@ -230,7 +231,7 @@ def create_geographic_hierarchy():
 
     # Create Basins and link to Countries
     for basin in BASINS:
-        execute_cypher_query(
+        await execute_cypher_query(
             """
             MATCH (country:Country {name: $country_name})
             CREATE (b:Basin {name: $basin_name})
@@ -241,7 +242,7 @@ def create_geographic_hierarchy():
     print(f"  ✓ Created {len(BASINS)} basins")
 
 
-def create_aquifers(num_aquifers_per_basin: int = 10):
+async def create_aquifers(num_aquifers_per_basin: int = 10):
     """Create aquifers with realistic properties."""
     print(f"\n💧 Creating aquifers ({num_aquifers_per_basin} per basin)...")
 
@@ -257,7 +258,7 @@ def create_aquifers(num_aquifers_per_basin: int = 10):
             props_with_basin = {**props, "basin_name": basin_name}
 
             # Create aquifer and link to basin
-            execute_cypher_query(
+            await execute_cypher_query(
                 """
                 MATCH (b:Basin {name: $basin_name})
                 CREATE (a:Aquifer {
@@ -291,21 +292,21 @@ def create_aquifers(num_aquifers_per_basin: int = 10):
     print(f"✓ Created {total_created} aquifers total")
 
 
-def verify_data():
+async def verify_data():
     """Verify that data was created correctly."""
     print("\n✅ Verifying data...")
 
     # Count nodes
-    result = execute_cypher_query("MATCH (a:Aquifer) RETURN count(a) as count")
+    result = await execute_cypher_query("MATCH (a:Aquifer) RETURN count(a) as count")
     aquifer_count = result[0]["count"] if result else 0
 
-    result = execute_cypher_query("MATCH (b:Basin) RETURN count(b) as count")
+    result = await execute_cypher_query("MATCH (b:Basin) RETURN count(b) as count")
     basin_count = result[0]["count"] if result else 0
 
-    result = execute_cypher_query("MATCH (c:Country) RETURN count(c) as count")
+    result = await execute_cypher_query("MATCH (c:Country) RETURN count(c) as count")
     country_count = result[0]["count"] if result else 0
 
-    result = execute_cypher_query("MATCH (c:Continent) RETURN count(c) as count")
+    result = await execute_cypher_query("MATCH (c:Continent) RETURN count(c) as count")
     continent_count = result[0]["count"] if result else 0
 
     print(f"  - Continents: {continent_count}")
@@ -314,7 +315,7 @@ def verify_data():
     print(f"  - Aquifers: {aquifer_count}")
 
     # Sample query
-    result = execute_cypher_query(
+    result = await execute_cypher_query(
         """
         MATCH (a:Aquifer)-[:LOCATED_IN_BASIN]->(b:Basin)-[:IS_LOCATED_IN_COUNTRY]->(c:Country)
         RETURN a.OBJECTID, a.Porosity, a.Depth, b.name as basin, c.name as country
@@ -335,7 +336,7 @@ def verify_data():
 # Main Function
 # ============================================
 
-def main():
+async def main():
     """Main seeding function."""
     print("="*60)
     print("NEO4J DATABASE SEEDING SCRIPT")
@@ -353,21 +354,21 @@ def main():
     try:
         # Step 1: Clear database (optional)
         if not args.skip_clear:
-            clear_database()
+            await clear_database()
         else:
             print("\n⚠️  Skipping database clear (--skip-clear flag)")
 
         # Step 2: Create indexes
-        create_indexes()
+        await create_indexes()
 
         # Step 3: Create geographic hierarchy
-        create_geographic_hierarchy()
+        await create_geographic_hierarchy()
 
         # Step 4: Create aquifers
-        create_aquifers(num_aquifers_per_basin=args.aquifers_per_basin)
+        await create_aquifers(num_aquifers_per_basin=args.aquifers_per_basin)
 
         # Step 5: Verify
-        verify_data()
+        await verify_data()
 
         print("\n" + "="*60)
         print("✅ SEEDING COMPLETE!")
@@ -388,5 +389,5 @@ def main():
 
 
 if __name__ == "__main__":
-    success = main()
+    success = asyncio.run(main())
     sys.exit(0 if success else 1)

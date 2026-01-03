@@ -99,6 +99,18 @@ async def update_chat_session_summary(session_id: UUID, new_summary: str):
     print(f"Updated summary for session {session_id}.")
 
 
+async def save_chat_message(session_id: UUID, user_message: str, ai_response: str):
+    """
+    Saves a user message and AI response to the chat session history.
+    This is a simplified version for V2 that doesn't include complex metadata.
+    """
+    # Add user message
+    await add_message_to_session(session_id=session_id, role="user", content=user_message)
+
+    # Add AI response
+    await add_message_to_session(session_id=session_id, role="assistant", content=ai_response)
+
+
 async def create_chat_session(title: str = "New Chat") -> UUID:
     """Creates a new chat session in the database."""
     session_id = uuid.uuid4()

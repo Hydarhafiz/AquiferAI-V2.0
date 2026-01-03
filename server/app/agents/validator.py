@@ -267,7 +267,7 @@ async def validate_and_execute(
             start_time = time.perf_counter()
 
             # Execute using the existing Neo4j driver
-            results = execute_cypher_query(current_query, cypher_query.parameters)
+            results = await execute_cypher_query(current_query, cypher_query.parameters)
 
             execution_time = (time.perf_counter() - start_time) * 1000  # ms
 

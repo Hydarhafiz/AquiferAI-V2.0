@@ -204,14 +204,35 @@ class OllamaClient(BaseLLMClient):
 
         # Enhance the last user message with JSON schema instruction
         enhanced_messages = messages.copy()
-        schema_str = json.dumps(response_model.model_json_schema(), indent=2)
+
+        # Get a simplified schema example instead of full JSON schema
+        # This helps smaller models understand the expected format better
+        schema = response_model.model_json_schema()
+
+        # Build a cleaner instruction with field descriptions
+        fields_desc = []
+        properties = schema.get("properties", {})
+        required = schema.get("required", [])
+
+        for field_name, field_info in properties.items():
+            field_type = field_info.get("type", "any")
+            desc = field_info.get("description", "")
+            req = "(required)" if field_name in required else "(optional)"
+            if "$ref" in field_info or "allOf" in field_info or "anyOf" in field_info:
+                field_type = "object or enum"
+            if field_info.get("items"):
+                field_type = f"array of {field_info['items'].get('type', 'objects')}"
+            fields_desc.append(f"  - {field_name}: {field_type} {req} {desc}")
+
+        fields_str = "\n".join(fields_desc)
 
         # Add JSON format instruction to system message or create one
-        system_instruction = f"""You must respond with valid JSON matching this exact schema:
+        system_instruction = f"""IMPORTANT: You must respond with a valid JSON object containing these fields:
 
-{schema_str}
+{fields_str}
 
-Return ONLY the JSON object, no additional text or markdown formatting."""
+Do NOT return the schema definition. Return actual data values.
+Return ONLY the JSON object, no additional text, explanation, or markdown formatting."""
 
         # Check if there's already a system message
         if enhanced_messages and enhanced_messages[0]["role"] == "system":

@@ -55,7 +55,8 @@ def get_neo4j_driver():
         _neo4j_driver_instance = Neo4jDriver()
     return _neo4j_driver_instance
 
-def execute_cypher_query(query: str, parameters=None):
+async def execute_cypher_query(query: str, parameters=None):
+    """Async wrapper for executing Cypher queries."""
     try:
         # Clean parameters - remove empty values
         clean_params = {}
@@ -63,7 +64,7 @@ def execute_cypher_query(query: str, parameters=None):
             for key, value in parameters.items():
                 if value is not None and value != "":
                     clean_params[key] = value
-        
+
         # Use the instance of Neo4jDriver to execute the query
         neo4j_driver = get_neo4j_driver()
         records = neo4j_driver.execute_query(query, clean_params)

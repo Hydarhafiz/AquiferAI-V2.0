@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # --- MODIFICATION HERE ---
 from app.init_db import init_db_async # Import the async init function
 # --- END MODIFICATION ---
-from app.api.endpoints import aquifer_router, chat_router
+from app.api.endpoints import aquifer_router, chat_router, chat_v2_router
 
 app = FastAPI(
     title="CO2 Aquifer Suitability API",
@@ -44,3 +44,4 @@ app.add_middleware(
 
 app.include_router(aquifer_router.router, prefix="/api")
 app.include_router(chat_router.router, prefix="/chat")
+app.include_router(chat_v2_router.router, prefix="/api")  # V2 endpoints with LangGraph workflow
