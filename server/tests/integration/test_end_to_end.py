@@ -547,6 +547,10 @@ async def test_performance_benchmark():
 
 async def main():
     """Run all integration tests."""
+    # Set up logging to file
+    from tests.conftest import setup_test_logging, teardown_test_logging
+    log_file = setup_test_logging("test_end_to_end")
+
     print("\n" + "="*60)
     print("INTEGRATION TEST SUITE - END-TO-END WORKFLOW")
     print("="*60)
@@ -601,6 +605,9 @@ async def main():
         print("  - Check Ollama: ollama list")
         print("  - Check Neo4j: docker-compose logs neo4j")
         print("  - Check data: python tests/scripts/seed_neo4j.py")
+
+    # Clean up logging
+    teardown_test_logging(log_file, passed, total - passed)
 
     return passed == total
 

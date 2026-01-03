@@ -505,6 +505,61 @@ After all tests pass:
 
 ---
 
+## Test Logging
+
+All test runs are automatically logged to files in `tests/logs/` for future reference.
+
+### Log File Location
+
+```
+server/tests/logs/
+├── test_end_to_end_20260103_123456.log
+├── test_api_endpoints_20260103_124530.log
+└── ...
+```
+
+### Log Contents
+
+Each log file contains:
+- Timestamp when test started
+- Full test output (same as terminal)
+- Pass/fail summary
+- Timestamp when test completed
+
+### Viewing Logs
+
+```bash
+# List recent logs
+ls -la tests/logs/
+
+# View most recent end-to-end test log
+cat tests/logs/$(ls -t tests/logs/test_end_to_end_*.log | head -1)
+
+# View most recent API test log
+cat tests/logs/$(ls -t tests/logs/test_api_endpoints_*.log | head -1)
+
+# Search for errors in logs
+grep -r "✗" tests/logs/
+
+# Search for specific test
+grep -l "TEST 4" tests/logs/*.log
+```
+
+### Log Retention
+
+- Logs are NOT committed to git (see `.gitignore`)
+- Clean up old logs periodically:
+
+```bash
+# Remove logs older than 7 days
+find tests/logs -name "*.log" -mtime +7 -delete
+
+# Remove all logs
+rm -f tests/logs/*.log
+```
+
+---
+
 ## Quick Reference
 
 ```bash
@@ -523,6 +578,9 @@ python tests/integration/test_api_endpoints.py  # Server must be running
 
 # Start server for API tests
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+# View test logs
+ls tests/logs/
 ```
 
 ---

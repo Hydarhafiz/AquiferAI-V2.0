@@ -17,8 +17,13 @@ Prerequisites:
 
 import asyncio
 import sys
+import os
 import httpx
 from pathlib import Path
+
+# Add server directory to path for imports
+server_dir = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(server_dir))
 
 # Configuration
 API_BASE_URL = "http://localhost:8000"
@@ -343,6 +348,10 @@ async def test_expert_mode_message():
 
 async def main():
     """Run all API endpoint tests."""
+    # Set up logging to file
+    from tests.conftest import setup_test_logging, teardown_test_logging
+    log_file = setup_test_logging("test_api_endpoints")
+
     print("\n" + "="*60)
     print("API ENDPOINT TEST SUITE - V2 CHAT")
     print("="*60)
@@ -395,6 +404,9 @@ async def main():
         print("  ✓ Expert mode working")
     else:
         print(f"\n✗ {total - passed} test(s) failed.")
+
+    # Clean up logging
+    teardown_test_logging(log_file, passed, total - passed)
 
     return passed == total
 
